@@ -3,8 +3,9 @@ class ParsedEmail
 	            :body
 	
 	def initialize raw_email
-		@headers, @body = parse raw_email
+		@headers, @body = parse(raw_email)
 	end
+
 
 	# Method calls for sanity in views
 	def subject() self.headers["Subject"] end
@@ -17,45 +18,67 @@ class ParsedEmail
 	def cc() addresses_in("Cc").join(", ") end
 	def bcc() addresses_in("Bcc").join(", ") end
 
+
+	# Returns an array of email addresses found in a given field and removes duplicates
+	def addresses_in field
+		self.headers[field].scan(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/).flatten.uniq rescue []
+	end
+
+
+
+
+
 	private
 
 	# Returns hash of headers and hash of body
 	def parse email
 		# Two newlines marks end of headers
 		split = email.read.split("\n\n", 2)
+
 		headers = parse_headers(split[0])
 		body = split[1]
-		return [headers, body]
+
+		[headers, body]
 	end
 
 
-	def parse_headers headers
-		headers_without_fws = remove_fws(headers)
-		create_headers_hash(headers_without_fws)
+	def parse_headers raw_headers
+		headers_array = remove_fws(raw_headers)
+		create_headers_hash(headers_array)
 	end
 
 
-	# Skip line if it's just whitespace,
-	# Add line to the last element if it begins with whitespace,
-	# Otherwise, make it a new element
-	def remove_fws raw_headers
+	def remove_fws headers_with_fws
 		headers = []
-		raw_headers.each_line do |line|
+
+		# Ignore line if it's just whitespace,
+		# Add line to the last header if it begins with whitespace,
+		# Otherwise, make it a new header
+		headers_with_fws.each_line do |line|
 			next if line =~ /^\s+$/
 			line =~ /^\s/ ? headers[-1] += line.strip : headers << line.strip
 		end
+
 		headers
 	end
 
-	# Convert headers into hash, preserving duplicates with an array
-	def create_headers_hash array
-		array.map{ |line| line.split(": ", 2) }.to_h
-	end
 
+	def create_headers_hash headers_array
+		headers = {}
 
-	# Returns an array of email addresses found in a given field and removes duplicates
-	def addresses_in field
-		self.headers[field].scan(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/).flatten.uniq rescue []
+		# Store values as hash, but don't include duplicate values
+		headers_array.map do |line|
+			header = line.split(": ", 2)
+			headers[header[0]] ||= []
+			headers[header[0]] << header[1] unless headers[header[0]].include? header[1]
+		end
+
+		# Pop value from array if there's only one value
+		headers.each do |key, value|
+			headers[key] = value.pop if value.length == 1
+		end
+
+		headers
 	end
 
 end
