@@ -1,9 +1,18 @@
+Date: <%= @email.date %><br>
+Message ID: <%= @email.message_id %><br><br>
+
+Delivered to: <%= @email.delivered_to %><br>
+Return Path: <%= @email.return_path %><br><br>
+
+<%= @email.received %><br><br>
+
 From: <%= @email.from %><br>
 To: <%= @email.to %><br>
 CC: <%= @email.cc %><br>
 <br>
 
-Content-type: <%= @email.content_type %>
+Content-type: <%= @email.content_type %><br>
+MIME-Version: <%= @email.mime_version %><br>
 
 <br>
 

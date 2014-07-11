@@ -7,9 +7,16 @@ class ParsedEmail
 	end
 
 
+	def received() self.headers["Received"].to_s end
+
+	def date() self.headers["Date"] end
+
+	def message_id() self.headers["Message-ID"] end
+
 	# Method calls for sanity in views
 	def subject() self.headers["Subject"] end
 	def content_type() self.headers["Content-Type"] end
+	def mime_version() self.headers["MIME-Version"] end
 
 
 	# Method calls listing email addresses as comma separated string
@@ -17,6 +24,8 @@ class ParsedEmail
 	def to() addresses_in("To").join(", ") end
 	def cc() addresses_in("Cc").join(", ") end
 	def bcc() addresses_in("Bcc").join(", ") end
+	def delivered_to() addresses_in("Delivered-To").join(", ") end
+	def return_path() addresses_in("Return-Path").join(", ") end
 
 
 	# Returns an array of email addresses found in a given field and removes duplicates
