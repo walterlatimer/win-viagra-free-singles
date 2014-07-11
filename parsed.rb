@@ -3,7 +3,7 @@ class ParsedEmail
 	            :body
 	
 	def initialize raw_email
-		parse raw_email
+		@headers, @body = parse raw_email
 	end
 
 	# Method calls for sanity in views
@@ -11,7 +11,7 @@ class ParsedEmail
 	def content_type() self.headers["Content-Type"] end
 
 
-	# List emails out as comma separated string
+	# Method calls listing email addresses as comma separated string
 	def from() addresses_in("From").join(", ") end
 	def to() addresses_in("To").join(", ") end
 	def cc() addresses_in("Cc").join(", ") end
@@ -19,21 +19,19 @@ class ParsedEmail
 
 	private
 
+	# Returns hash of headers and hash of body
 	def parse email
 		# Two newlines marks end of headers
 		split = email.read.split("\n\n", 2)
-
-		# Returns hash of headers
-		@headers = parse_headers(split[1])
-
-		# Returns body, not yet formatted
-		@body = split[2]
+		headers = parse_headers(split[0])
+		body = split[1]
+		return [headers, body]
 	end
 
 
 	def parse_headers headers
 		headers_without_fws = remove_fws(headers)
-		create_headers_hash(headers_without_fws).to_h
+		create_headers_hash(headers_without_fws)
 	end
 
 
@@ -49,8 +47,9 @@ class ParsedEmail
 		headers
 	end
 
+	# Convert headers into hash, preserving duplicates with an array
 	def create_headers_hash array
-		array.map{ |line| line.split(": ", 2) }
+		array.map{ |line| line.split(": ", 2) }.to_h
 	end
 
 
