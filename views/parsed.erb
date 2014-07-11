@@ -1,15 +1,20 @@
+<h1><%= @email.subject %></h1>
+
 Date: <%= @email.date %><br>
 Message ID: <%= @email.message_id %><br><br>
 
 Delivered to: <%= @email.delivered_to %><br>
 Return Path: <%= @email.return_path %><br><br>
 
-<%= @email.received %><br><br>
+<% @email.received.each do |checkpoint| %>
+	<p><%= checkpoint %></p>
+<% end %>
 
 From: <%= @email.from %><br>
 To: <%= @email.to %><br>
-CC: <%= @email.cc %><br>
+<%= "CC: #{@email.cc}<br>" if @email.cc %>
 <br>
+REAL SENDER: <%= @email.real_sender %><br><br>
 
 Content-type: <%= @email.content_type %><br>
 MIME-Version: <%= @email.mime_version %><br>
@@ -18,4 +23,6 @@ MIME-Version: <%= @email.mime_version %><br>
 
 <br>
 
-<%= @email.headers %>
+<%= @email.headers %><br><br>
+
+<%= @email.body %>
