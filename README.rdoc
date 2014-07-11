@@ -1,3 +1,11 @@
-== Win Viagra Free Singles $50 Right Now Save Money
+== Win Viagra Free Singles
 
-win-viagra-free-singles is an email parser, currently in progress.
+win-viagra-free-singles is a sexily unsexy service that gives you the 411 on your junk mail.  It takes your raw, uncut emails and parses the data to let you know what's really going on behind the scenes.
+
+== But How Does It Work?
+
+Great question.
+
+== What's Next?
+
+Better question!
