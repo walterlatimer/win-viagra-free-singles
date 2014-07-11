@@ -1,1 +1,12 @@
-<%= @email.headers.to_s %>
+From: <%= @email.from %><br>
+To: <%= @email.to %><br>
+CC: <%= @email.cc %><br>
+<br>
+
+Content-type: <%= @email.content_type %>
+
+<br>
+
+<br>
+
+<%= @email.headers %>
