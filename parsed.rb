@@ -12,7 +12,7 @@ class ParsedEmail
 	# Method calls for sanity in views
 	def subject() self.headers["Subject"] || "[NO SUBJECT]" end
 	def content_type() self.headers["Content-Type"].split(";").first rescue nil end
-	def mime_version() self.headers["MIME-Version"] rescue nil end
+	def mime_version() self.headers["MIME-Version"] || self.headers["Mime-Version"] rescue nil end
 
 	# Method calls listing email addresses as comma separated string
 	def from() readable_emails("From") end
@@ -56,8 +56,7 @@ class ParsedEmail
 		# Two newlines marks end of headers
 		headers, body = path.read.split("\n\n", 2)
 		@headers = parse_headers(headers)
-		body = parse_body(self.content_type, body)
-		body.class == Array ? @body = body : @body = [body]
+		@body = parse_body(self.content_type, body)
 	end
 
 
@@ -73,16 +72,11 @@ class ParsedEmail
 	# Removes FWS from headers
 	def remove_fws headers_with_fws
 		headers = []
-
-		# Ignore line if it's just whitespace,
-		# Add line to the last header if it begins with whitespace,
-		# Otherwise, make it a new header
 		headers_with_fws.each_line do |line|
-			next if line =~ /^\s+$/
-			next if line =~ /^((?!:)[\s\S])*$/ && headers.size == 0
+			next if line =~ /^\s+$/ # If line is empty
+			next if line =~ /^((?!:)[\s\S])*$/ && headers.size == 0 # If they're trying to pull a fast one
 			line =~ /^\s/ ? headers[-1] += line.strip : headers << line.strip
 		end
-
 		headers
 	end
 
@@ -98,10 +92,7 @@ class ParsedEmail
 		end
 
 		# Pop value from array if there's only one value
-		headers.each do |key, value|
-			headers[key] = value.pop if value.length == 1
-		end
-		headers
+		headers.each{ |key, value| headers[key] = value.pop if value.length == 1 }
 	end
 
 
@@ -109,52 +100,50 @@ class ParsedEmail
 
 
 	# Returns hash of body, with types as keys
-	# No it doesn't
+	# No it doesn't, yet
 	def parse_body content_type, body
+		body.lstrip!
 		case content_type
-		when "multipart/alternative" then parse_multipart(body)
-		when "text/plain" then parse_text_plain(body)
-		when "text/html" then parse_text_html(body)
-		when nil then "[No Content]"
-		else content_type + " not yet supported"
+		when "multipart/alternative" then parse_multipart_alternative(body)
+		when "multipart/mixed" then ["I'm getting to this, I swear..."]
+		when "text/plain" then [parse_text_plain(body)]
+		when "text/html" then [parse_text_html(body)]
+		when nil then ["[No Content]"]
+		else [content_type + " not yet supported"]
 		end
 	end
 
 
-	# Returns an array of each version of the body
-	def parse_multipart raw_body
+	# Returns an array of each part of the email
+	def parse_multipart_alternative raw_body
+
+		# Use the boundary to split up each part of the email
 		boundary = get_boundary(@headers["Content-Type"])
+		bodies = raw_body.split(boundary + "\n")[1..-1].map { |body|
 
-		bodies = []
-		# Split the body at the boundary, then parse each individually
-		split_multipart(boundary, raw_body).each do |each_body|
-			# Get the content type of each version of the body
-			body_content_type = each_body.split("Content-Type: ", 2).last.split(";", 2).first
-			# Get body
-			this_body = each_body.split(/\n/, 2).last
-			# Parse it again, henny
-			bodies << parse_body(body_content_type, this_body).split(/\n\n/, 2).last
-		end
-		bodies
+			# Lather, rinse, repeat:  get the content and bodies of each part, then parse
+			body_content_type = body.split("Content-Type: ", 2).last.split(";", 2).first
+			body = body.split(/\n\n/, 2).last.gsub(/#{boundary}--/, "")
+			parse_body(body_content_type, body)
+		}.flatten
 	end
 
-	def parse_text_plain raw_body
-		'<pre>' + raw_body.gsub(/(?:\n\r?|\r\n?)|=0D/, '<br>').gsub("="," ") + '</pre>'
-	end
-
-	def parse_text_html raw_body
-		raw_body.gsub("=C2=A0"," ").gsub(/(?:\n\r?|\r\n?)|=/,"").gsub("C2A0"," ").gsub("\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
-	end
 
 	# Pulls the boundary out of the content-type header
 	def get_boundary content_type_header
 		comments = content_type_header.split(";", 2).last
-		boundary = "--" + comments.match(/boundary=(.+)[;]|boundary=(.+)[\w]/).to_s.gsub(/(boundary=)|(")/, "")
+		boundary = "--" + comments.match(/boundary=(.+)[;]|boundary=(.+)[\w]/).to_s.gsub(/(boundary=)|(")|(;)/, "")
 	end
 
-	# Returns an array of an array of each version of the body
-	def split_multipart(bound, multipart_body)
-		multipart_body.split(bound + "\n").reject! { |c| c.empty? }
+
+	def parse_text_plain raw_body
+		'<pre>' + raw_body.gsub(/(?:\n\r?|\r\n?)|=0D/, '<br>').gsub(" 3D", "=") + '</pre>'
 	end
+
+
+	def parse_text_html raw_body
+		raw_body.gsub("=C2=A0"," ").gsub(/(?:\n\r?|\r\n?)|=/,"").gsub("C2A0"," ").gsub("\t", "")
+	end
+
 
 end

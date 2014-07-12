@@ -1,4 +1,5 @@
 require 'sinatra'
+
 require './parsed.rb'
 
 class WinViagraFreeSingles < Sinatra::Base

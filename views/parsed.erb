@@ -10,7 +10,7 @@ Return Path: <%= @email.return_path %><br><br>
 	<p><%= checkpoint %></p>
 <% end %>
 
-<%= "From#{@email.from}<br>" if @email.from %>
+<%= "From: #{@email.from}<br>" if @email.from %>
 <%= "To: #{@email.to}<br>" if @email.to %>
 <%= "CC: #{@email.cc}<br>" if @email.cc %>
 <%= "BCC: #{@email.bcc}<br>" if @email.bcc %>
@@ -24,7 +24,6 @@ MIME-Version: <%= @email.mime_version %><br>
 
 <br>
 
-<%= @email.headers %><br><br>
 
 <% @email.body.each do |each_body| %>
 <%= each_body %><br><br>
