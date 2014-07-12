@@ -14,3 +14,4 @@ Win Viagra Free Singles gives you the 411 on your email.  It parses email data t
 * The logic for some content types has not yet been created.  Currently returns a friendly "Does not support" message for these types.
 * New to Sinatra, so I'm sure the file structure could probably be tidied up.
 * It's ugly.
+* More time needs to be spent parsing the "Received" headers, since right now there isn't much relevant information being displayed.
