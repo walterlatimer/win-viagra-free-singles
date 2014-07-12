@@ -31,7 +31,7 @@ class ParsedEmail
 	# Returns nil if message_id is empty string
 	def message_id
 		message_id = self.headers["Message-ID"]
-		message_id.empty? ? message_id : nil
+		message_id.nil? || message_id.empty? ? message_id : nil
 	end
 
 	def real_sender()
@@ -64,10 +64,16 @@ class ParsedEmail
 	# Returns hash of body, with types as keys
 	def parse_body content_type, raw_body
 		if content_type == "multipart/alternative"
-			"Multiplart!!!"
+			boundary = get_boundary(@headers["Content-Type"])
+			boundary
 		else
 			"Not multipart"
 		end
+	end
+
+	def get_boundary content_type_header
+		comments = content_type_header.split(";", 2).last
+		boundary = comments.match(/boundary=(.+)[;]|boundary=(.+)[\w]/).to_s.gsub(/(boundary=)|(")/, "")
 	end
 
 	# Removes FWS from headers
