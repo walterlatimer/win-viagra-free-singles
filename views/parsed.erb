@@ -26,4 +26,6 @@ MIME-Version: <%= @email.mime_version %><br>
 
 <%= @email.headers %><br><br>
 
-<%= @email.body %>
+<% @email.body.each do |each_body| %>
+<%= each_body %><br><br>
+<% end %>

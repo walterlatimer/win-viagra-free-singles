@@ -56,7 +56,8 @@ class ParsedEmail
 		# Two newlines marks end of headers
 		headers, body = path.read.split("\n\n", 2)
 		@headers = parse_headers(headers)
-		@body = parse_body(self.content_type, body)
+		body = parse_body(self.content_type, body)
+		body.class == Array ? @body = body : @body = [body]
 	end
 
 
@@ -108,23 +109,41 @@ class ParsedEmail
 
 
 	# Returns hash of body, with types as keys
+	# No it doesn't
 	def parse_body content_type, body
 		case content_type
 		when "multipart/alternative" then parse_multipart(body)
 		when "text/plain" then parse_text_plain(body)
+		when "text/html" then parse_text_html(body)
 		when nil then "[No Content]"
 		else content_type + " not yet supported"
 		end
 	end
 
+
+	# Returns an array of each version of the body
 	def parse_multipart raw_body
-			boundary = get_boundary(@headers["Content-Type"])
-			bodies = split_multipart(boundary, raw_body)
-			bodies.map! do |each_body|
-				body_content_type = each_body.first.split(": ", 2).last.split(";", 2).first
-				parse_body(body_content_type, each_body)
-			end
-			bodies
+		boundary = get_boundary(@headers["Content-Type"])
+
+		bodies = []
+		# Split the body at the boundary, then parse each individually
+		split_multipart(boundary, raw_body).each do |each_body|
+			# Get the content type of each version of the body
+			body_content_type = each_body.split("Content-Type: ", 2).last.split(";", 2).first
+			# Get body
+			this_body = each_body.split(/\n/, 2).last
+			# Parse it again, henny
+			bodies << parse_body(body_content_type, this_body).split(/\n\n/, 2).last
+		end
+		bodies
+	end
+
+	def parse_text_plain raw_body
+		'<pre>' + raw_body.gsub(/(?:\n\r?|\r\n?)|=0D/, '<br>').gsub("="," ") + '</pre>'
+	end
+
+	def parse_text_html raw_body
+		raw_body.gsub("=C2=A0"," ").gsub(/(?:\n\r?|\r\n?)|=/,"").gsub("C2A0"," ").gsub("\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
 	end
 
 	# Pulls the boundary out of the content-type header
@@ -135,12 +154,7 @@ class ParsedEmail
 
 	# Returns an array of an array of each version of the body
 	def split_multipart(bound, multipart_body)
-		body = []
-		multipart_body.each_line do |line|
-			line.rstrip!
-			line == bound ? body << [] : body[-1] << line
-		end
-		body
+		multipart_body.split(bound + "\n").reject! { |c| c.empty? }
 	end
 
 end
