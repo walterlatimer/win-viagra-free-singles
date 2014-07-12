@@ -1,30 +1,56 @@
-<h1><%= @email.subject %></h1>
+<header>
+	<div class="date">This email sent at: <%= @email.date %></div>
+	<h1>Results for: <%= @email.subject %></h1>
+</header>
 
-Date: <%= @email.date %><br>
-<%= "Message ID: @email.message_id" if @email.message_id %><br><br>
+<main>
 
-<%= "Delivered to: #{@email.delivered_to}" if @email.delivered_to %><br>
-<%= "Return Path: #{@email.return_path}" if @email.return_path %><br><br>
+	<p>
+		Alright, we've looked at the data and I'm sorry to report that you actually haven't won the lottery in Nigeria, Michelle Obama didn't ask you a personal favor, and your penis hasn't grown any larger.  But we did find out a bunch of other really cool information about this email, assuming you think this is cool.
+	</p>
 
-<% @email.received.each do |checkpoint| %>
-	<p><%= checkpoint %></p>
-<% end %>
+	<h2>Basic Info</h2>
 
-<%= "From: #{@email.from}<br>" if @email.from %>
-<%= "To: #{@email.to}<br>" if @email.to %>
-<%= "CC: #{@email.cc}<br>" if @email.cc %>
-<%= "BCC: #{@email.bcc}<br>" if @email.bcc %>
-<br>
-REAL SENDER: <%= @email.real_sender %><br><br>
+	<p>
+		<%= "<b>Message ID:</b> @email.message_id<br>" if @email.message_id %>
+		<%= "<b>Delivered to:</b> #{@email.delivered_to}<br>" if @email.delivered_to %>
+		<%= "<b>Return Path:</b> #{@email.return_path}<br>" if @email.return_path %>
+	</p>
 
-Content-type: <%= @email.content_type %><br>
-MIME-Version: <%= @email.mime_version %><br>
+	<p>
+		<%= "<b>From:</b> #{@email.from}<br>" if @email.from %>
+		<%= "<b>To:</b> #{@email.to}<br>" if @email.to %>
+		<%= "<b>CC:</b> #{@email.cc}<br>" if @email.cc %>
+		<%= "<b>BCC:</b> #{@email.bcc}<br>" if @email.bcc %>
+	</p>
 
-<br>
+	<p>
+		Content-type: <%= @email.content_type %><br>
+		MIME-Version: <%= @email.mime_version %>
+	</p>
 
-<br>
+
+	<h2>This Message's Passport</h2>
+
+	<p class="info">These are all the computers this email had to pass through before it arrived in your inbox.</p>
+
+	<% @email.received.each do |checkpoint| %>
+		<p><%= checkpoint %></p>
+	<% end %>
 
 
-<% @email.body.each do |each_body| %>
-<%= each_body %><br><br>
-<% end %>
+	<!-- REAL SENDER: <%= @email.real_sender %><br><br> -->
+
+
+	<h2>The Infamous Email</h2>
+
+	<p class="info">
+		So this is the message that caused all the fuss?  Here it is, in every version that was sent.
+	</p>
+
+
+	<% @email.body.each do |each_body| %>
+		<%= each_body %><br><br>
+	<% end %>
+
+</main>

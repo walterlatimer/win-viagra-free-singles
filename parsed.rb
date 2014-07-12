@@ -74,7 +74,7 @@ class ParsedEmail
 
 	# Removes FWS from headers, returns an array for each header
 	def remove_fws headers_with_fws
-		headers = []
+		headers = Array.new
 		headers_with_fws.each_line do |line|
 			next if line =~ /^\s+$/ # If line is empty
 			next if line =~ /^((?!:)[\s\S])*$/ && headers.size == 0 # If they're trying to pull a fast one
@@ -120,14 +120,13 @@ class ParsedEmail
 		boundary = "--" + comments.match(/boundary=(.+)[;]|boundary=(.+)[\w]/).to_s.gsub(/(boundary=)|(")|(;)/, "")
 	end
 
-
 	def parse_text_plain raw_body
 		['<pre>' + raw_body.gsub(/(?:\n\r?|\r\n?)|=0D/, '<br>').gsub(" 3D", "=") + '</pre>']
 	end
 
 
 	def parse_text_html raw_body
-		[raw_body.gsub("=C2=A0"," ").gsub(/(?:\n\r?|\r\n?)|=/,"").gsub("C2A0"," ").gsub("\t", "")]
+		['<section class="html">' + raw_body.gsub("=C2=A0"," ").gsub(/(?:\n\r?|\r\n?)|=/,"").gsub("C2A0"," ").gsub("\t", "") + '</section>']
 	end
 
 
