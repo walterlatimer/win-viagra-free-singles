@@ -1,11 +1,16 @@
 == Win Viagra Free Singles
 
-win-viagra-free-singles is a sexily unsexy service that gives you the 411 on your junk mail.  It takes your raw, uncut emails and parses the data to let you know what's really going on behind the scenes.
+Win Viagra Free Singles gives you the 411 on your email.  It parses email data to let you know what's really going on behind the scenes.
 
-== But How Does It Work?
+== But What Does It Do?
 
-Great question.
+* Lets you know if you really were the 1,000,000th visitor to a site who needs to claim their prize.
+* Returns a parsed email, with simple method calls to access frequently used email headers (To, From, etc), and a simple way to call less common headers (@email.headers["Not-A-Real-Header"]).
+* Returns an array of every content type that was sent in the email in an HTML-friendly way.
 
-== What's Next?
+== What's Still Needs to Be Done?
 
-Better question!
+* Some of the general expressions used are a little off, and need perfecting.
+* The logic for some content types has not yet been created.  Currently returns a friendly "Does not support" message for these types.
+* New to Sinatra, so I'm sure the file structure could probably be tidied up.
+* It's ugly.
