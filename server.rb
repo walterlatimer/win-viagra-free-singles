@@ -1,5 +1,4 @@
 require 'sinatra'
-
 require './parsed.rb'
 
 class WinViagraFreeSingles < Sinatra::Base
@@ -11,8 +10,8 @@ class WinViagraFreeSingles < Sinatra::Base
 	post '/' do
 		if params[:file]
 			@email = ParsedEmail.new(params[:file][:tempfile])
-			type = params[:file][:type] == "text/plain"
-			type ? (erb :parsed) : "Text files only!"
+			message = "Text files only!  And please make sure they're actual emails, or else you'll break my poor app"
+			params[:file][:type] == "text/plain" ? (erb :parsed) : message
 		else
 			erb :index
 		end

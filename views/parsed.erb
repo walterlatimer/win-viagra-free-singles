@@ -1,10 +1,10 @@
 <h1><%= @email.subject %></h1>
 
 Date: <%= @email.date %><br>
-Message ID: <%= @email.message_id %><br><br>
+<%= "Message ID: @email.message_id" if @email.message_id %><br><br>
 
-Delivered to: <%= @email.delivered_to %><br>
-Return Path: <%= @email.return_path %><br><br>
+<%= "Delivered to: #{@email.delivered_to}" if @email.delivered_to %><br>
+<%= "Return Path: #{@email.return_path}" if @email.return_path %><br><br>
 
 <% @email.received.each do |checkpoint| %>
 	<p><%= checkpoint %></p>
