@@ -43,6 +43,10 @@ class ParsedEmail
 		self.headers[field].scan(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/).flatten.uniq rescue nil
 	end
 
+	# Returns a string of email addresses, comma separated
+	def readable_emails header
+		addresses_in(readable).join(", ") rescue nil
+	end
 
 	private
 
@@ -55,25 +59,14 @@ class ParsedEmail
 		@body = parse_body(self.content_type, body)
 	end
 
+
+	#### PARSE HEADERS ####
+
+
 	# Returns hash of headers
 	def parse_headers raw_headers
 		headers_array = remove_fws(raw_headers)
 		create_headers_hash(headers_array)
-	end
-
-	# Returns hash of body, with types as keys
-	def parse_body content_type, raw_body
-		if content_type == "multipart/alternative"
-			boundary = get_boundary(@headers["Content-Type"])
-			boundary
-		else
-			"Not multipart"
-		end
-	end
-
-	def get_boundary content_type_header
-		comments = content_type_header.split(";", 2).last
-		boundary = comments.match(/boundary=(.+)[;]|boundary=(.+)[\w]/).to_s.gsub(/(boundary=)|(")/, "")
 	end
 
 	# Removes FWS from headers
@@ -106,13 +99,46 @@ class ParsedEmail
 		headers.each do |key, value|
 			headers[key] = value.pop if value.length == 1
 		end
-
 		headers
 	end
 
-	# Returns a string of email addresses, comma separated
-	def readable_emails header
-		addresses_in(readable).join(", ") rescue nil
+
+	#### PARSE BODY ####
+
+
+	# Returns hash of body, with types as keys
+	def parse_body content_type, body
+		case content_type
+		when "multipart/alternative" then parse_multipart(body)
+		when "text/plain" then body
+		else "Content Type not yet supported"
+		end
+	end
+
+	def parse_multipart raw_body
+			boundary = get_boundary(@headers["Content-Type"])
+			bodies = split_multipart(boundary, raw_body)
+			bodies.map! do |body|
+				body_content_type = body.first.split(": ").last.split(";").first
+				body_content_type
+			end
+			bodies
+	end
+
+	# Pulls the boundary out of the content-type header
+	def get_boundary content_type_header
+		comments = content_type_header.split(";", 2).last
+		boundary = "--" + comments.match(/boundary=(.+)[;]|boundary=(.+)[\w]/).to_s.gsub(/(boundary=)|(")/, "")
+	end
+
+	# Returns an array of an array of each version of the body
+	def split_multipart(bound, multipart_body)
+		body = []
+		multipart_body.each_line do |line|
+			line.rstrip!
+			line == bound ? body << [] : body[-1] << line
+		end
+		body
 	end
 
 end
