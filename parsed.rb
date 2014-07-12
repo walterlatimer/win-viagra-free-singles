@@ -2,35 +2,36 @@ class ParsedEmail
 	attr_reader :headers,
 	            :body
 	
-	def initialize raw_email
-		@headers, @body = parse(raw_email)
+	def initialize path
+		parse(path)
 	end
 
 	# Update these guys
-
 	def date() self.headers["Date"] end
-	def message_id() self.headers["Message-ID"] rescue "No Message ID" end
-
 
 	# Method calls for sanity in views
 	def subject() self.headers["Subject"] || "[NO SUBJECT]" end
-	def content_type() self.headers["Content-Type"] end
-	def mime_version() self.headers["MIME-Version"] end
-
+	def content_type() self.headers["Content-Type"].split(";").first rescue nil end
+	def mime_version() self.headers["MIME-Version"] rescue nil end
 
 	# Method calls listing email addresses as comma separated string
-	def from() addresses_in("From").join(", ") rescue nil end
-	def to() addresses_in("To").join(", ") rescue nil end
-	def cc() addresses_in("Cc").join(", ") rescue nil end
-	def bcc() addresses_in("Bcc").join(", ") rescue nil end
-	def delivered_to() addresses_in("Delivered-To").join(", ") rescue nil end
-	def return_path() addresses_in("Return-Path").join(", ") rescue nil end
+	def from() readable_emails("From") end
+	def to() readable_emails("To") end
+	def cc() readable_emails("Cc") end
+	def bcc() readable_emails("Bcc") end
+	def delivered_to() readable_emails("Delivered-To") end
+	def return_path() readable_emails("Return-Path") end
 
-
-	# Should always return an array, so make it an array if it's a string
+	# Should always return an array, so make it an array if it's a string or nil
 	def received()
 		received = self.headers["Received"]
-		received.class == String ? [received] : received
+		received.class == Array ? received : [received]
+	end
+
+	# Returns nil if message_id is empty string
+	def message_id
+		message_id = self.headers["Message-ID"]
+		message_id.empty? ? message_id : nil
 	end
 
 	def real_sender()
@@ -43,27 +44,33 @@ class ParsedEmail
 	end
 
 
-
 	private
 
+
 	# Returns hash of headers and hash of body
-	def parse email
+	def parse path
 		# Two newlines marks end of headers
-		split = email.read.split("\n\n", 2)
-
-		headers = parse_headers(split[0])
-		body = split[1]
-
-		[headers, body]
+		headers, body = path.read.split("\n\n", 2)
+		@headers = parse_headers(headers)
+		@body = parse_body(self.content_type, body)
 	end
 
-
+	# Returns hash of headers
 	def parse_headers raw_headers
 		headers_array = remove_fws(raw_headers)
 		create_headers_hash(headers_array)
 	end
 
+	# Returns hash of body, with types as keys
+	def parse_body content_type, raw_body
+		if content_type == "multipart/alternative"
+			"Multiplart!!!"
+		else
+			"Not multipart"
+		end
+	end
 
+	# Removes FWS from headers
 	def remove_fws headers_with_fws
 		headers = []
 
@@ -78,16 +85,15 @@ class ParsedEmail
 		headers
 	end
 
-
+	# Returns hash of headers, with an array of values if there are multiple occurances of a key
 	def create_headers_hash headers_array
-		# Received may have multiple values, as array
 		headers = {}
 
 		# Store values as hash, but don't include duplicate values
 		headers_array.map do |line|
-			header = line.split(": ", 2)
-			headers[header[0]] ||= []
-			headers[header[0]] << header[1] unless headers[header[0]].include? header[1]
+			key, value = line.split(": ", 2)
+			headers[key] ||= []
+			headers[key] << value unless headers[key].include? value
 		end
 
 		# Pop value from array if there's only one value
@@ -96,6 +102,11 @@ class ParsedEmail
 		end
 
 		headers
+	end
+
+	# Returns a string of email addresses, comma separated
+	def readable_emails header
+		addresses_in(readable).join(", ") rescue nil
 	end
 
 end

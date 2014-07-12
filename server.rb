@@ -8,8 +8,13 @@ class WinViagraFreeSingles < Sinatra::Base
 	end
 
 	post '/' do
-		@email = ParsedEmail.new(params[:file][:tempfile])
-		erb :parsed
+		if params[:file]
+			@email = ParsedEmail.new(params[:file][:tempfile])
+			type = params[:file][:type] == "text/plain"
+			type ? (erb :parsed) : "Text files only!"
+		else
+			erb :index
+		end
 	end
 
 end
