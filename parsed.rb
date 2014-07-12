@@ -45,7 +45,7 @@ class ParsedEmail
 
 	# Returns a string of email addresses, comma separated
 	def readable_emails header
-		addresses_in(readable).join(", ") rescue nil
+		addresses_in(header).join(", ") rescue nil
 	end
 
 	private
@@ -78,6 +78,7 @@ class ParsedEmail
 		# Otherwise, make it a new header
 		headers_with_fws.each_line do |line|
 			next if line =~ /^\s+$/
+			next if line =~ /^((?!:)[\s\S])*$/ && headers.size == 0
 			line =~ /^\s/ ? headers[-1] += line.strip : headers << line.strip
 		end
 
@@ -110,17 +111,18 @@ class ParsedEmail
 	def parse_body content_type, body
 		case content_type
 		when "multipart/alternative" then parse_multipart(body)
-		when "text/plain" then body
-		else "Content Type not yet supported"
+		when "text/plain" then parse_text_plain(body)
+		when nil then "[No Content]"
+		else content_type + " not yet supported"
 		end
 	end
 
 	def parse_multipart raw_body
 			boundary = get_boundary(@headers["Content-Type"])
 			bodies = split_multipart(boundary, raw_body)
-			bodies.map! do |body|
-				body_content_type = body.first.split(": ").last.split(";").first
-				body_content_type
+			bodies.map! do |each_body|
+				body_content_type = each_body.first.split(": ", 2).last.split(";", 2).first
+				parse_body(body_content_type, each_body)
 			end
 			bodies
 	end
