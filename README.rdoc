@@ -8,7 +8,7 @@ Win Viagra Free Singles gives you the 411 on your email.  It parses email data t
 * Returns a parsed email, with simple method calls to access frequently used email headers (To, From, etc), and a simple way to call less common headers (@email.headers["Not-A-Real-Header"]).
 * Returns an array of every content type that was sent in the email in an HTML-friendly way.
 
-== What's Still Needs to Be Done?
+== What Still Needs to Be Done?
 
 * Some of the general expressions used are a little off, and need perfecting.
 * The logic for some content types has not yet been created.  Currently returns a friendly "Does not support" message for these types.
