@@ -1,5 +1,5 @@
 <header>
-	<div class="date">This email sent at: <%= @email.date %></div>
+	<%= "<div class='date'>This email sent at: #{@email.date}</div>" if @email.date %>
 	<h1>Results for: <%= @email.subject %></h1>
 </header>
 
@@ -25,8 +25,8 @@
 	</p>
 
 	<p>
-		Content-type: <%= @email.content_type %><br>
-		MIME-Version: <%= @email.mime_version %>
+		<%= "<b>Content-type:</b> #{@email.content_type}" if @email.content_type %><br>
+		<%= "<b>MIME-Version:</b> #{@email.mime_version}" if @email.mime_version %>
 	</p>
 
 

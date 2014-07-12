@@ -31,6 +31,7 @@ class ParsedEmail
 		message_id.nil? || message_id.empty? ? message_id : nil
 	end
 
+	# The originating IP, but this really is a halfassed method for now
 	def real_sender()
 		self.received.last
 	end
@@ -87,7 +88,7 @@ class ParsedEmail
 	# Returns hash of body, with types as keys
 	# No it doesn't, yet
 	def parse_body content_type, body
-		body.lstrip!
+		body.lstrip! rescue nil
 		case content_type
 		when "multipart/alternative" then parse_multipart_alternative(body)
 		when "multipart/mixed"       then ["I'm getting to this, I swear..."]
@@ -121,7 +122,7 @@ class ParsedEmail
 	end
 
 	def parse_text_plain raw_body
-		['<pre>' + raw_body.gsub(/(?:\n\r?|\r\n?)|=0D/, '<br>').gsub(" 3D", "=") + '</pre>']
+		['<pre>' + raw_body.gsub("=\n","").gsub("=3D", "=") + '</pre>']
 	end
 
 
